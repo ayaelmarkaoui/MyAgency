@@ -1,0 +1,932 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Aurelia Voyage — Administration</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --navy:#06102A;--navy-mid:#0D1E42;--navy-light:#132552;
+      --gold:#D4AF55;--gold-light:#E8CC7A;--gold-dim:rgba(212,175,85,.15);--gold-border:rgba(212,175,85,.28);
+      --teal:#1AA3C9;--white:#F6F1E6;--white-dim:rgba(246,241,230,.07);--muted:rgba(246,241,230,.50);
+      --danger:#E05555;--success:#3DBA7A;--warning:#E8A030;--sidebar-w:240px;--radius:6px;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{scroll-behavior:smooth;}
+    body{font-family:'Jost',sans-serif;background:var(--navy);color:var(--white);min-height:100vh;display:flex;}
+    #login-screen{position:fixed;inset:0;z-index:1000;background:var(--navy);display:flex;align-items:center;justify-content:center;}
+    .login-box{background:var(--navy-mid);border:1px solid var(--gold-border);border-radius:12px;padding:44px 40px;width:100%;max-width:400px;box-shadow:0 24px 60px rgba(0,0,0,.5);}
+    .login-logo{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:600;color:var(--gold-light);text-align:center;margin-bottom:6px;}
+    .login-sub{font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);text-align:center;margin-bottom:32px;}
+    .login-box label{display:block;font-size:.72rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:7px;margin-top:18px;}
+    .login-box label:first-of-type{margin-top:0;}
+    .login-box input{width:100%;background:var(--white-dim);border:1px solid var(--gold-border);border-radius:var(--radius);padding:11px 14px;color:var(--white);font-family:'Jost',sans-serif;font-size:.90rem;outline:none;transition:border-color .2s;}
+    .login-box input:focus{border-color:var(--gold);}
+    .login-error{color:#F08080;font-size:.80rem;margin-top:10px;display:none;}
+    .btn-login{width:100%;margin-top:22px;background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--navy);border:none;border-radius:var(--radius);padding:12px;font-family:'Jost',sans-serif;font-size:.80rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;transition:opacity .2s;}
+    .btn-login:hover{opacity:.88;}
+    .btn-login:disabled{opacity:.5;cursor:not-allowed;}
+    #app{display:none;width:100%;}
+    .sidebar{width:var(--sidebar-w);flex-shrink:0;background:var(--navy-mid);border-right:1px solid var(--gold-border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;}
+    .sidebar-brand{padding:24px 20px 20px;border-bottom:1px solid var(--gold-border);}
+    .brand-name{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:600;color:var(--gold-light);}
+    .brand-role{font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-top:3px;}
+    .sidebar-nav{padding:16px 10px;flex:1;}
+    .nav-group-label{font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);padding:10px 10px 6px;}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius);font-size:.84rem;font-weight:500;color:rgba(246,241,230,.70);cursor:pointer;transition:background .15s,color .15s;margin-bottom:2px;border:none;background:none;width:100%;text-align:left;}
+    .nav-item:hover{background:var(--white-dim);color:var(--white);}
+    .nav-item.active{background:var(--gold-dim);color:var(--gold-light);border:1px solid var(--gold-border);}
+    .nav-item .icon{font-size:1.1rem;width:20px;text-align:center;}
+    .badge-count{margin-left:auto;background:var(--danger);color:#fff;font-size:.66rem;font-weight:600;padding:2px 7px;border-radius:10px;min-width:20px;text-align:center;}
+    .badge-count.zero{display:none;}
+    .sidebar-footer{padding:16px 10px;border-top:1px solid var(--gold-border);}
+    .btn-logout{width:100%;display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:var(--radius);background:none;border:1px solid rgba(220,80,80,.30);color:#F08080;font-family:'Jost',sans-serif;font-size:.80rem;font-weight:500;cursor:pointer;transition:background .15s;}
+    .btn-logout:hover{background:rgba(220,80,80,.08);}
+    .main{flex:1;overflow-y:auto;}
+    .topbar{position:sticky;top:0;z-index:50;background:rgba(6,16,42,.90);backdrop-filter:blur(12px);border-bottom:1px solid var(--gold-border);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;}
+    .topbar-title{font-family:'Cormorant Garamond',serif;font-size:1.30rem;font-weight:600;color:var(--white);}
+    .topbar-right{display:flex;align-items:center;gap:12px;}
+    .topbar-admin{font-size:.78rem;color:var(--muted);}
+    .page{padding:28px;display:none;}
+    .page.active{display:block;}
+    .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:28px;}
+    .stat-card{background:var(--navy-mid);border:1px solid var(--gold-border);border-radius:10px;padding:20px 22px;}
+    .stat-card-label{font-size:.70rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+    .stat-card-num{font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-weight:600;color:var(--gold-light);line-height:1;}
+    .stat-card-sub{font-size:.78rem;color:var(--muted);margin-top:6px;}
+    .stat-card.highlight{border-color:rgba(220,80,80,.35);background:rgba(220,80,80,.07);}
+    .stat-card.highlight .stat-card-num{color:#F08080;}
+    .table-card{background:var(--navy-mid);border:1px solid var(--gold-border);border-radius:10px;overflow:hidden;margin-bottom:24px;}
+    .table-header{padding:16px 20px;border-bottom:1px solid var(--gold-border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+    .table-header h3{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:600;color:var(--white);}
+    .table-filters{display:flex;gap:8px;flex-wrap:wrap;}
+    .filter-btn{font-size:.72rem;font-weight:600;letter-spacing:.08em;padding:5px 13px;border-radius:4px;cursor:pointer;background:none;border:1px solid var(--gold-border);color:var(--muted);transition:all .15s;font-family:'Jost',sans-serif;}
+    .filter-btn:hover{color:var(--gold);border-color:var(--gold);}
+    .filter-btn.active{background:var(--gold-dim);color:var(--gold-light);border-color:var(--gold-border);}
+    .table-wrap{overflow-x:auto;}
+    table{width:100%;border-collapse:collapse;font-size:.84rem;}
+    th{padding:11px 16px;text-align:left;font-size:.68rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--gold-border);background:rgba(246,241,230,.03);white-space:nowrap;}
+    td{padding:13px 16px;border-bottom:1px solid rgba(212,175,85,.10);vertical-align:middle;}
+    tr:last-child td{border-bottom:none;}
+    tr:hover td{background:var(--white-dim);}
+    .td-name{font-weight:500;color:var(--white);}
+    .td-phone{color:var(--muted);font-size:.82rem;}
+    .td-date{color:var(--muted);font-size:.78rem;white-space:nowrap;}
+    .status{display:inline-flex;align-items:center;gap:5px;font-size:.68rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border-radius:3px;}
+    .status::before{content:"";width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+    .status-nouveau{background:rgba(26,163,201,.15);color:#1AA3C9;border:1px solid rgba(26,163,201,.30);}
+    .status-nouveau::before{background:#1AA3C9;}
+    .status-en_cours{background:rgba(232,160,48,.15);color:#E8A030;border:1px solid rgba(232,160,48,.30);}
+    .status-en_cours::before{background:#E8A030;}
+    .status-traite{background:rgba(61,186,122,.15);color:#3DBA7A;border:1px solid rgba(61,186,122,.30);}
+    .status-traite::before{background:#3DBA7A;}
+    .status-archive{background:rgba(246,241,230,.07);color:var(--muted);border:1px solid rgba(212,175,85,.15);}
+    .status-archive::before{background:var(--muted);}
+    .action-btn{font-size:.70rem;font-weight:600;padding:4px 10px;border-radius:3px;cursor:pointer;border:1px solid;font-family:'Jost',sans-serif;transition:all .15s;white-space:nowrap;}
+    .action-btn.primary{background:var(--gold-dim);border-color:var(--gold-border);color:var(--gold-light);}
+    .action-btn.primary:hover{background:rgba(212,175,85,.28);}
+    .action-btn.danger{background:rgba(220,80,80,.10);border-color:rgba(220,80,80,.30);color:#F08080;}
+    .action-btn.danger:hover{background:rgba(220,80,80,.18);}
+    .actions-cell{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+    .notif-bell-wrap{position:relative;display:inline-flex;}
+    .notif-bell{background:none;border:1px solid var(--gold-border);border-radius:6px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);font-size:1.1rem;transition:all .2s;position:relative;}
+    .notif-bell:hover{border-color:var(--gold);color:var(--gold);background:var(--gold-dim);}
+    .notif-bell.has-unread{border-color:rgba(212,175,85,.5);color:var(--gold);}
+    .notif-dot{position:absolute;top:-4px;right:-4px;background:var(--danger);color:#fff;font-size:10px;font-weight:700;line-height:1;min-width:18px;height:18px;border-radius:9px;display:none;align-items:center;justify-content:center;padding:0 4px;border:2px solid var(--navy);}
+    .notif-dot.visible{display:flex;}
+    .notif-dropdown{position:absolute;top:calc(100% + 10px);right:0;width:380px;max-height:520px;background:var(--navy-mid);border:1px solid var(--gold-border);border-radius:10px;box-shadow:0 16px 48px rgba(0,0,0,.5);z-index:200;overflow:hidden;display:none;flex-direction:column;}
+    .notif-dropdown.open{display:flex;}
+    .notif-drop-header{padding:14px 18px;border-bottom:1px solid var(--gold-border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+    .notif-drop-title{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;color:var(--white);}
+    .notif-drop-actions{display:flex;gap:8px;}
+    .notif-action-btn{font-size:.68rem;font-weight:600;letter-spacing:.06em;padding:4px 10px;border-radius:3px;cursor:pointer;font-family:'Jost',sans-serif;transition:all .15s;}
+    .notif-action-btn.read-all{background:var(--gold-dim);border:1px solid var(--gold-border);color:var(--gold-light);}
+    .notif-action-btn.read-all:hover{background:rgba(212,175,85,.28);}
+    .notif-action-btn.clear-all{background:rgba(220,80,80,.10);border:1px solid rgba(220,80,80,.25);color:#F08080;}
+    .notif-action-btn.clear-all:hover{background:rgba(220,80,80,.20);}
+    .notif-list{overflow-y:auto;flex:1;}
+    .notif-item{padding:13px 18px;border-bottom:1px solid rgba(212,175,85,.08);display:flex;gap:12px;align-items:flex-start;cursor:pointer;transition:background .15s;position:relative;}
+    .notif-item:hover{background:var(--white-dim);}
+    .notif-item.unread{background:rgba(212,175,85,.05);}
+    .notif-item.unread::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--gold);border-radius:0 2px 2px 0;}
+    .notif-icon{font-size:1.2rem;width:32px;height:32px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--white-dim);border-radius:6px;border:1px solid var(--gold-border);}
+    .notif-content{flex:1;min-width:0;}
+    .notif-title{font-size:.84rem;font-weight:500;color:var(--white);line-height:1.3;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .notif-body{font-size:.76rem;color:var(--muted);line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+    .notif-time{font-size:.68rem;color:rgba(246,241,230,.30);margin-top:4px;white-space:nowrap;}
+    .notif-del{flex-shrink:0;background:none;border:none;color:rgba(246,241,230,.20);font-size:1rem;cursor:pointer;padding:2px 4px;border-radius:3px;transition:color .15s,background .15s;}
+    .notif-del:hover{color:#F08080;background:rgba(220,80,80,.10);}
+    .notif-empty{padding:40px 20px;text-align:center;color:var(--muted);font-size:.88rem;}
+    .notif-empty div{font-size:2rem;margin-bottom:8px;}
+    .notif-page-item{background:var(--navy-mid);border:1px solid var(--gold-border);border-radius:8px;padding:16px 20px;margin-bottom:10px;display:flex;gap:14px;align-items:flex-start;position:relative;transition:border-color .2s;}
+    .notif-page-item.unread{border-left:3px solid var(--gold);}
+    .notif-page-item:hover{border-color:rgba(212,175,85,.5);}
+    .notif-meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px;}
+    .notif-cat-badge{font-size:.66rem;font-weight:600;letter-spacing:.10em;text-transform:uppercase;padding:3px 9px;border-radius:2px;}
+    .cat-contact{background:rgba(26,163,201,.15);color:#1AA3C9;border:1px solid rgba(26,163,201,.25);}
+    .cat-visa{background:rgba(212,175,85,.15);color:#D4AF55;border:1px solid rgba(212,175,85,.25);}
+    .cat-omra{background:rgba(232,160,48,.15);color:#E8A030;border:1px solid rgba(232,160,48,.25);}
+    .status-select{background:var(--navy);border:1px solid var(--gold-border);border-radius:3px;padding:4px 8px;color:var(--white);font-family:'Jost',sans-serif;font-size:.78rem;outline:none;cursor:pointer;}
+    .status-select option{background:var(--navy-mid);}
+    .empty-state{text-align:center;padding:48px 20px;color:var(--muted);}
+    .empty-state div{font-size:2rem;margin-bottom:10px;}
+    .empty-state p{font-size:.88rem;}
+    .loading-row td{text-align:center;color:var(--muted);font-style:italic;}
+    .pagination{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-top:1px solid var(--gold-border);font-size:.80rem;color:var(--muted);}
+    .page-btns{display:flex;gap:6px;}
+    .page-btn{padding:5px 12px;border-radius:3px;border:1px solid var(--gold-border);background:none;color:var(--muted);font-family:'Jost',sans-serif;font-size:.78rem;cursor:pointer;transition:all .15s;}
+    .page-btn:hover:not(:disabled){color:var(--gold);border-color:var(--gold);}
+    .page-btn:disabled{opacity:.35;cursor:not-allowed;}
+    #detail-modal{display:none;position:fixed;inset:0;z-index:500;background:rgba(6,16,42,.85);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px;}
+    #detail-modal.open{display:flex;}
+    .modal-box{background:var(--navy-mid);border:1px solid var(--gold-border);border-radius:12px;padding:32px;max-width:520px;width:100%;position:relative;box-shadow:0 24px 60px rgba(0,0,0,.5);max-height:90vh;overflow-y:auto;}
+    .modal-close{position:absolute;top:12px;right:16px;background:none;border:none;color:var(--muted);font-size:1.4rem;cursor:pointer;line-height:1;}
+    .modal-close:hover{color:var(--white);}
+    .modal-title{font-family:'Cormorant Garamond',serif;font-size:1.30rem;font-weight:600;color:var(--white);margin-bottom:20px;padding-right:30px;}
+    .modal-row{display:flex;gap:12px;margin-bottom:12px;align-items:flex-start;}
+    .modal-key{font-size:.70rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);min-width:110px;padding-top:2px;flex-shrink:0;}
+    .modal-val{font-size:.88rem;color:var(--white);line-height:1.5;word-break:break-word;}
+    .modal-notes-label{font-size:.70rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:7px;margin-top:18px;}
+    .modal-notes{width:100%;background:var(--white-dim);border:1px solid var(--gold-border);border-radius:var(--radius);padding:10px 12px;color:var(--white);font-family:'Jost',sans-serif;font-size:.88rem;outline:none;resize:vertical;min-height:80px;}
+    .modal-notes:focus{border-color:var(--gold);}
+    .modal-actions{display:flex;gap:10px;margin-top:20px;}
+    .btn-save{padding:10px 22px;background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--navy);border:none;border-radius:var(--radius);font-family:'Jost',sans-serif;font-size:.78rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;}
+    .btn-save:hover{opacity:.88;}
+    .btn-save:disabled{opacity:.5;cursor:not-allowed;}
+    .btn-cancel{padding:10px 18px;background:none;border:1px solid var(--gold-border);color:var(--muted);border-radius:var(--radius);font-family:'Jost',sans-serif;font-size:.78rem;cursor:pointer;}
+    .btn-cancel:hover{color:var(--white);}
+    #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--navy-mid);border:1px solid var(--gold-border);color:var(--gold-light);padding:12px 24px;border-radius:6px;font-size:.84rem;font-weight:500;z-index:9999;opacity:0;transition:opacity .3s,transform .3s;pointer-events:none;}
+    #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  </style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">Aurelia Voyage</div>
+    <div class="login-sub">Espace Administration</div>
+    <form id="login-form">
+      <label for="login-email">Email</label>
+      <input type="email" id="login-email" placeholder="admin@aureliavoyage.ma" required autocomplete="username"/>
+      <label for="login-password">Mot de passe</label>
+      <input type="password" id="login-password" placeholder="••••••••" required autocomplete="current-password"/>
+      <div class="login-error" id="login-error"></div>
+      <button type="submit" class="btn-login" id="login-btn">Se connecter</button>
+    </form>
+  </div>
+</div>
+
+<div id="app">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-name">Aurelia Voyage</div>
+      <div class="brand-role">Administration</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-group-label">Tableau de bord</div>
+      <button class="nav-item active" data-page="dashboard"><span class="icon">📊</span> Dashboard</button>
+      <div class="nav-group-label" style="margin-top:12px;">Demandes</div>
+      <button class="nav-item" data-page="contacts"><span class="icon">✉️</span> Devis & Contact<span class="badge-count zero" id="badge-contacts">0</span></button>
+      <button class="nav-item" data-page="visas"><span class="icon">🛂</span> Demandes Visa<span class="badge-count zero" id="badge-visas">0</span></button>
+      <button class="nav-item" data-page="omra"><span class="icon">🕌</span> Réservations Omra<span class="badge-count zero" id="badge-omra">0</span></button>
+      <div class="nav-group-label" style="margin-top:12px;">Système</div>
+      <button class="nav-item" data-page="notifications"><span class="icon">🔔</span> Notifications<span class="badge-count zero" id="badge-notif-nav">0</span></button>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="btn-logout" id="logout-btn"><span>⬅</span> Déconnexion</button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title" id="page-title">Tableau de bord</div>
+      <div class="topbar-right">
+        <span class="topbar-admin" id="admin-email-display"></span>
+        <div class="notif-bell-wrap" id="notif-bell-wrap">
+          <button class="notif-bell" id="notif-bell" title="Notifications">
+            🔔<span class="notif-dot" id="notif-dot"></span>
+          </button>
+          <div class="notif-dropdown" id="notif-dropdown">
+            <div class="notif-drop-header">
+              <span class="notif-drop-title">Notifications</span>
+              <div class="notif-drop-actions">
+                <button class="notif-action-btn read-all" id="btn-read-all">✓ Tout lire</button>
+                <button class="notif-action-btn clear-all" id="btn-clear-all">🗑 Effacer</button>
+              </div>
+            </div>
+            <div class="notif-list" id="notif-list-drop">
+              <div class="notif-empty"><div>🔔</div>Aucune notification</div>
+            </div>
+          </div>
+        </div>
+        <button id="btn-refresh" style="background:none;border:1px solid var(--gold-border);color:var(--muted);padding:6px 12px;border-radius:4px;cursor:pointer;font-size:.78rem;font-family:'Jost',sans-serif;">↻ Actualiser</button>
+      </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-card-label">Contact / Devis</div><div class="stat-card-num" id="s-contact-total">—</div><div class="stat-card-sub" id="s-contact-new">— nouveaux</div></div>
+        <div class="stat-card highlight"><div class="stat-card-label">À traiter</div><div class="stat-card-num" id="s-total-new">—</div><div class="stat-card-sub">toutes catégories</div></div>
+        <div class="stat-card"><div class="stat-card-label">Demandes Visa</div><div class="stat-card-num" id="s-visa-total">—</div><div class="stat-card-sub" id="s-visa-new">— nouveaux</div></div>
+        <div class="stat-card"><div class="stat-card-label">Réservations Omra</div><div class="stat-card-num" id="s-omra-total">—</div><div class="stat-card-sub" id="s-omra-new">— nouveaux</div></div>
+      </div>
+      <div class="table-card">
+        <div class="table-header">
+          <h3>Dernières demandes</h3>
+          <button class="filter-btn" data-go="contacts">Voir tout →</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Nom</th><th>Service</th><th>Téléphone</th><th>Statut</th><th>Reçu le</th></tr></thead>
+            <tbody id="recent-tbody"><tr class="loading-row"><td colspan="5">Chargement…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTACTS -->
+    <div class="page" id="page-contacts">
+      <div class="table-card">
+        <div class="table-header">
+          <h3>Devis & Contact</h3>
+          <div class="table-filters" id="filter-contacts">
+            <button class="filter-btn active" data-filter="">Tous</button>
+            <button class="filter-btn" data-filter="nouveau">Nouveaux</button>
+            <button class="filter-btn" data-filter="en_cours">En cours</button>
+            <button class="filter-btn" data-filter="traite">Traités</button>
+            <button class="filter-btn" data-filter="archive">Archivés</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Nom</th><th>Téléphone</th><th>Service</th><th>Message</th><th>Statut</th><th>Reçu le</th><th>Actions</th></tr></thead>
+            <tbody id="contacts-tbody"><tr class="loading-row"><td colspan="7">Chargement…</td></tr></tbody>
+          </table>
+        </div>
+        <div class="pagination">
+          <span id="contacts-count">—</span>
+          <div class="page-btns">
+            <button class="page-btn" id="contacts-prev" disabled>← Préc.</button>
+            <button class="page-btn" id="contacts-next" disabled>Suiv. →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VISAS -->
+    <div class="page" id="page-visas">
+      <div class="table-card">
+        <div class="table-header">
+          <h3>Demandes Visa</h3>
+          <div class="table-filters" id="filter-visas">
+            <button class="filter-btn active" data-filter="">Tous</button>
+            <button class="filter-btn" data-filter="nouveau">Nouveaux</button>
+            <button class="filter-btn" data-filter="en_cours">En cours</button>
+            <button class="filter-btn" data-filter="traite">Traités</button>
+            <button class="filter-btn" data-filter="archive">Archivés</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Destination</th><th>Type</th><th>Nationalité</th><th>Email</th><th>Statut</th><th>Reçu le</th><th>Actions</th></tr></thead>
+            <tbody id="visas-tbody"><tr class="loading-row"><td colspan="7">Chargement…</td></tr></tbody>
+          </table>
+        </div>
+        <div class="pagination">
+          <span id="visas-count">—</span>
+          <div class="page-btns">
+            <button class="page-btn" id="visas-prev" disabled>← Préc.</button>
+            <button class="page-btn" id="visas-next" disabled>Suiv. →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OMRA -->
+    <div class="page" id="page-omra">
+      <div class="table-card">
+        <div class="table-header">
+          <h3>Réservations Omra</h3>
+          <div class="table-filters" id="filter-omra">
+            <button class="filter-btn active" data-filter="">Tous</button>
+            <button class="filter-btn" data-filter="nouveau">Nouveaux</button>
+            <button class="filter-btn" data-filter="en_cours">En cours</button>
+            <button class="filter-btn" data-filter="traite">Traités</button>
+            <button class="filter-btn" data-filter="archive">Archivés</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Nom</th><th>Formule</th><th>Téléphone</th><th>Personnes</th><th>Départ</th><th>Statut</th><th>Reçu le</th><th>Actions</th></tr></thead>
+            <tbody id="omra-tbody"><tr class="loading-row"><td colspan="8">Chargement…</td></tr></tbody>
+          </table>
+        </div>
+        <div class="pagination">
+          <span id="omra-count">—</span>
+          <div class="page-btns">
+            <button class="page-btn" id="omra-prev" disabled>← Préc.</button>
+            <button class="page-btn" id="omra-next" disabled>Suiv. →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NOTIFICATIONS -->
+    <div class="page" id="page-notifications">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+        <div>
+          <div style="font-size:.70rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Centre de notifications</div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:600;color:var(--white);">Toutes les notifications</div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button id="pg-read-all" class="notif-action-btn read-all" style="padding:8px 16px;">✓ Tout marquer lu</button>
+          <button id="pg-clear-all" class="notif-action-btn clear-all" style="padding:8px 16px;">🗑 Tout effacer</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;" id="notif-page-filters">
+        <button class="filter-btn active" data-filter="">Toutes</button>
+        <button class="filter-btn" data-filter="unread">Non lues</button>
+        <button class="filter-btn" data-filter="contact">Devis</button>
+        <button class="filter-btn" data-filter="visa">Visa</button>
+        <button class="filter-btn" data-filter="omra">Omra</button>
+      </div>
+      <div id="notif-page-list"><div class="notif-empty"><div>⏳</div>Chargement…</div></div>
+      <div style="display:flex;justify-content:center;gap:10px;margin-top:20px;">
+        <button class="page-btn" id="notif-pg-prev" disabled>← Préc.</button>
+        <span id="notif-pg-info" style="font-size:.80rem;color:var(--muted);padding:6px 12px;"></span>
+        <button class="page-btn" id="notif-pg-next" disabled>Suiv. →</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div id="detail-modal">
+  <div class="modal-box">
+    <button class="modal-close" id="modal-close">×</button>
+    <div class="modal-title" id="modal-title">Détail</div>
+    <div id="modal-fields"></div>
+    <div class="modal-notes-label">Notes internes</div>
+    <textarea class="modal-notes" id="modal-notes" placeholder="Ajouter une note…" rows="3"></textarea>
+    <div style="margin-top:14px;">
+      <label for="modal-status" style="font-size:.70rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:7px;">Statut</label>
+      <select class="status-select" id="modal-status" style="width:100%;padding:9px 12px;">
+        <option value="nouveau">Nouveau</option>
+        <option value="en_cours">En cours</option>
+        <option value="traite">Traité</option>
+        <option value="archive">Archivé</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-save" id="modal-save">Enregistrer</button>
+      <button class="btn-cancel" id="modal-cancel">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const API = 'http://localhost:3001/api';
+let TOKEN = localStorage.getItem('av_token') || '';
+let adminEmail = localStorage.getItem('av_email') || '';
+
+const state = {
+  contacts: { page:1, total:0, filter:'' },
+  visas:    { page:1, total:0, filter:'' },
+  omra:     { page:1, total:0, filter:'' },
+};
+const LIMIT = 15;
+
+/* ── TOAST ── */
+function toast(msg, ok=true) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.style.borderColor = ok ? 'rgba(212,175,85,.35)' : 'rgba(220,80,80,.35)';
+  el.style.color = ok ? 'var(--gold-light)' : '#F08080';
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3500);
+}
+
+/* ── AUTH ── */
+document.getElementById('login-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('login-btn');
+  const errEl = document.getElementById('login-error');
+  btn.disabled = true; btn.textContent = 'Connexion…'; errEl.style.display = 'none';
+  try {
+    const res = await fetch(API+'/admin/login', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ email: document.getElementById('login-email').value, password: document.getElementById('login-password').value }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Identifiants invalides.');
+    TOKEN = data.token; adminEmail = data.admin.email;
+    localStorage.setItem('av_token', TOKEN); localStorage.setItem('av_email', adminEmail);
+    showApp();
+  } catch(err) { errEl.textContent = err.message; errEl.style.display = 'block'; }
+  finally { btn.disabled = false; btn.textContent = 'Se connecter'; }
+});
+
+function showApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  document.getElementById('admin-email-display').textContent = adminEmail;
+  loadAll();
+  connectSSE();
+  apiFetch('/admin/notifications?limit=1').then(d => updateBell(d.unread_count||0)).catch(()=>{});
+}
+
+document.getElementById('logout-btn').addEventListener('click', () => {
+  TOKEN=''; localStorage.removeItem('av_token'); localStorage.removeItem('av_email'); location.reload();
+});
+
+/* ── API ── */
+async function apiFetch(path, opts={}) {
+  const res = await fetch(API+path, {
+    ...opts,
+    headers: {'Content-Type':'application/json','Authorization':'Bearer '+TOKEN,...(opts.headers||{})},
+  });
+  if (res.status===401||res.status===403) { localStorage.removeItem('av_token'); location.reload(); }
+  return res.json();
+}
+
+/* ── NAV ── */
+document.querySelectorAll('.nav-item[data-page]').forEach(btn => {
+  btn.addEventListener('click', () => switchPage(btn.dataset.page));
+});
+
+// "Voir tout →" sur le dashboard
+document.addEventListener('click', function(e) {
+  var go = e.target.closest('[data-go]');
+  if (go) switchPage(go.getAttribute('data-go'));
+});
+
+function switchPage(name) {
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.page===name));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  const titles = {dashboard:'Tableau de bord',contacts:'Devis & Contact',visas:'Demandes Visa',omra:'Réservations Omra',notifications:'Notifications'};
+  document.getElementById('page-title').textContent = titles[name]||name;
+  if (name==='notifications') loadNotifPage();
+}
+
+document.getElementById('btn-refresh').addEventListener('click', loadAll);
+
+/* ── LOAD ALL ── */
+async function loadAll() { loadStats(); loadContacts(); loadVisas(); loadOmra(); }
+
+/* ── STATS ── */
+async function loadStats() {
+  const data = await apiFetch('/admin/stats');
+  const {contacts, visas, omras} = data;
+  document.getElementById('s-contact-total').textContent = contacts.total;
+  document.getElementById('s-contact-new').textContent   = contacts.nouveau+' nouveaux';
+  document.getElementById('s-visa-total').textContent    = visas.total;
+  document.getElementById('s-visa-new').textContent      = visas.nouveau+' nouveaux';
+  document.getElementById('s-omra-total').textContent    = omras.total;
+  document.getElementById('s-omra-new').textContent      = omras.nouveau+' nouveaux';
+  document.getElementById('s-total-new').textContent     = parseInt(contacts.nouveau)+parseInt(visas.nouveau)+parseInt(omras.nouveau);
+  setBadge('contacts', contacts.nouveau); setBadge('visas', visas.nouveau); setBadge('omra', omras.nouveau);
+  loadRecent();
+}
+
+function setBadge(key, n) {
+  const el = document.getElementById('badge-'+key);
+  el.textContent = n; el.classList.toggle('zero', parseInt(n)===0);
+}
+
+async function loadRecent() {
+  const data = await apiFetch('/admin/contacts?limit=5&page=1');
+  const tbody = document.getElementById('recent-tbody');
+  if (!data.data||!data.data.length) { tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px;">Aucune demande.</td></tr>'; return; }
+  tbody.innerHTML = data.data.map(r =>
+    '<tr><td class="td-name">'+esc(r.nom)+'</td><td>'+esc(r.service)+'</td><td class="td-phone">'+esc(r.telephone)+'</td>'+
+    '<td><span class="status status-'+r.status+'">'+labelStatus(r.status)+'</span></td>'+
+    '<td class="td-date">'+fmtDate(r.created_at)+'</td></tr>'
+  ).join('');
+}
+
+/* ── TABLES ── */
+async function loadContacts() {
+  const {page,filter} = state.contacts;
+  const data = await apiFetch('/admin/contacts?page='+page+'&limit='+LIMIT+(filter?'&status='+filter:''));
+  state.contacts.total = data.total;
+  renderTable('contacts', data.data, [
+    r => '<td class="td-name">'+esc(r.nom)+'</td>',
+    r => '<td class="td-phone">'+esc(r.telephone)+'</td>',
+    r => '<td>'+esc(r.service)+'</td>',
+    r => '<td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);">'+esc(r.message||'—')+'</td>',
+    r => '<td><span class="status status-'+r.status+'">'+labelStatus(r.status)+'</span></td>',
+    r => '<td class="td-date">'+fmtDate(r.created_at)+'</td>',
+    r => '<td><div class="actions-cell">'+
+         '<button class="action-btn primary" data-action="detail" data-type="contacts" data-id="'+r.id+'">Détail</button>'+
+         '<button class="action-btn danger"  data-action="archive" data-type="contacts" data-id="'+r.id+'">Archiver</button>'+
+         '</div></td>',
+  ], 7);
+  updatePagination('contacts');
+}
+
+async function loadVisas() {
+  const {page,filter} = state.visas;
+  const data = await apiFetch('/admin/visas?page='+page+'&limit='+LIMIT+(filter?'&status='+filter:''));
+  state.visas.total = data.total;
+  renderTable('visas', data.data, [
+    r => '<td class="td-name">'+esc(r.destination)+'</td>',
+    r => '<td>'+esc(r.type_visa)+'</td>',
+    r => '<td>'+esc(r.nationalite)+'</td>',
+    // ← EMAIL affiché directement dans le tableau
+    r => '<td class="td-phone">'+esc(r.email||'—')+'</td>',
+    r => '<td><span class="status status-'+r.status+'">'+labelStatus(r.status)+'</span></td>',
+    r => '<td class="td-date">'+fmtDate(r.created_at)+'</td>',
+    r => '<td><div class="actions-cell">'+
+         '<button class="action-btn primary" data-action="detail" data-type="visas" data-id="'+r.id+'">Détail</button>'+
+         '<button class="action-btn danger"  data-action="archive" data-type="visas" data-id="'+r.id+'">Archiver</button>'+
+         '</div></td>',
+  ], 7);
+  updatePagination('visas');
+}
+
+async function loadOmra() {
+  const {page,filter} = state.omra;
+  const data = await apiFetch('/admin/omra?page='+page+'&limit='+LIMIT+(filter?'&status='+filter:''));
+  state.omra.total = data.total;
+  renderTable('omra', data.data, [
+    r => '<td class="td-name">'+esc(r.nom)+'</td>',
+    r => '<td>'+esc(r.formule)+'</td>',
+    r => '<td class="td-phone">'+esc(r.telephone)+'</td>',
+    r => '<td style="text-align:center;">'+r.nb_personnes+'</td>',
+    r => '<td class="td-date">'+(r.date_depart?fmtDate(r.date_depart):'—')+'</td>',
+    r => '<td><span class="status status-'+r.status+'">'+labelStatus(r.status)+'</span></td>',
+    r => '<td class="td-date">'+fmtDate(r.created_at)+'</td>',
+    r => '<td><div class="actions-cell">'+
+         '<button class="action-btn primary" data-action="detail" data-type="omra" data-id="'+r.id+'">Détail</button>'+
+         '<button class="action-btn danger"  data-action="archive" data-type="omra" data-id="'+r.id+'">Archiver</button>'+
+         '</div></td>',
+  ], 8);
+  updatePagination('omra');
+}
+
+function renderTable(key, rows, cols, colspan) {
+  const tbody = document.getElementById(key+'-tbody');
+  if (!rows||!rows.length) { tbody.innerHTML='<tr><td colspan="'+colspan+'"><div class="empty-state"><div>📭</div><p>Aucune demande trouvée.</p></div></td></tr>'; return; }
+  tbody.innerHTML = rows.map(r => '<tr>'+cols.map(fn=>fn(r)).join('')+'</tr>').join('');
+}
+
+function updatePagination(key) {
+  const {page,total} = state[key];
+  const pages = Math.ceil(total/LIMIT);
+  document.getElementById(key+'-count').textContent = total+' résultat(s) — Page '+page+'/'+(pages||1);
+  document.getElementById(key+'-prev').disabled = page<=1;
+  document.getElementById(key+'-next').disabled = page>=pages;
+}
+
+['contacts','visas','omra'].forEach(key => {
+  document.getElementById(key+'-prev').addEventListener('click', ()=>{ state[key].page--; loadSection(key); });
+  document.getElementById(key+'-next').addEventListener('click', ()=>{ state[key].page++; loadSection(key); });
+  document.getElementById('filter-'+key).addEventListener('click', (e)=>{
+    const btn = e.target.closest('.filter-btn');
+    if (!btn) return;
+    document.querySelectorAll('#filter-'+key+' .filter-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    state[key].filter = btn.dataset.filter;
+    state[key].page = 1;
+    loadSection(key);
+  });
+});
+
+function loadSection(key) {
+  if (key==='contacts') loadContacts();
+  else if (key==='visas') loadVisas();
+  else loadOmra();
+}
+
+/* ── DÉLÉGATION GLOBALE : Détail + Archiver ── */
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('[data-action]');
+  if (!btn) return;
+  const action = btn.getAttribute('data-action');
+  const type   = btn.getAttribute('data-type');
+  const id     = btn.getAttribute('data-id');
+  if (!action||!type||!id) return;
+  if (action==='detail')  { e.preventDefault(); openModal(type, id); }
+  if (action==='archive') { e.preventDefault(); archiveRow(type, id); }
+});
+
+async function archiveRow(type, id) {
+  if (!confirm('Archiver cet enregistrement ?')) return;
+  try {
+    await apiFetch('/admin/'+type+'/'+id, {method:'PATCH', body:JSON.stringify({status:'archive'})});
+    toast('✓ Archivé.'); loadSection(type); loadStats();
+  } catch(err) { toast('Erreur lors de l\'archivage.', false); }
+}
+
+/* ══════════════════════════════════════════════════════════
+   DETAIL MODAL
+══════════════════════════════════════════════════════════ */
+let modalCtx = {type:null, id:null};
+
+async function openModal(type, id) {
+  modalCtx = {type, id};
+  document.getElementById('modal-title').textContent = 'Chargement…';
+  document.getElementById('modal-fields').innerHTML  = '<div style="color:var(--muted);padding:12px 0;font-size:.85rem;">Récupération des données…</div>';
+  document.getElementById('modal-notes').value  = '';
+  document.getElementById('modal-status').value = 'nouveau';
+  document.getElementById('detail-modal').classList.add('open');
+
+  try {
+    const epMap = {contacts:'contacts', visas:'visas', omra:'omra'};
+    const ep = epMap[type];
+    if (!ep) throw new Error('Type inconnu : '+type);
+
+    const data = await apiFetch('/admin/'+ep+'?limit=500&page=1');
+    const rows = Array.isArray(data.data) ? data.data : [];
+    const row  = rows.find(r => String(r.id)===String(id));
+
+    if (!row) {
+      document.getElementById('modal-title').textContent = 'Introuvable';
+      document.getElementById('modal-fields').innerHTML  = '<div style="color:#F08080;font-size:.85rem;">Enregistrement introuvable.</div>';
+      return;
+    }
+
+    const titleMap = {contacts:'Devis — '+row.nom, visas:'Visa — '+row.destination, omra:'Omra — '+row.nom};
+    document.getElementById('modal-title').textContent = titleMap[type]||'Détail';
+
+    let fields = [];
+    if (type==='contacts') {
+      fields = [
+        ['Nom',       row.nom],
+        ['Téléphone', row.telephone],
+        ['Service',   row.service],
+        ['Message',   row.message||'—'],
+        ['Reçu le',   fmtDate(row.created_at)],
+      ];
+    } else if (type==='visas') {
+      fields = [
+        ['Destination',  row.destination],
+        ['Type de visa', row.type_visa],
+        ['Nationalité',  row.nationalite],
+        ['Email',        row.email||'—'],        // ← EMAIL dans la modale
+        ['Nom',          row.nom||'—'],
+        ['Téléphone',    row.telephone||'—'],
+        ['Reçu le',      fmtDate(row.created_at)],
+      ];
+    } else if (type==='omra') {
+      fields = [
+        ['Formule',      row.formule],
+        ['Nom',          row.nom],
+        ['Téléphone',    row.telephone],
+        ['Email',        row.email||'—'],
+        ['Nb personnes', String(row.nb_personnes)],
+        ['Date départ',  row.date_depart ? fmtDate(row.date_depart) : '—'],
+        ['Message',      row.message||'—'],
+        ['Reçu le',      fmtDate(row.created_at)],
+      ];
+    }
+
+    document.getElementById('modal-fields').innerHTML = fields.map(pair =>
+      '<div class="modal-row"><span class="modal-key">'+esc(pair[0])+'</span><span class="modal-val">'+esc(String(pair[1]==null?'—':pair[1]))+'</span></div>'
+    ).join('');
+
+    document.getElementById('modal-notes').value  = row.notes||'';
+    document.getElementById('modal-status').value = row.status||'nouveau';
+
+  } catch(err) {
+    document.getElementById('modal-title').textContent = 'Erreur';
+    document.getElementById('modal-fields').innerHTML  = '<div style="color:#F08080;font-size:.85rem;">'+esc(err.message||'Erreur inconnue')+'</div>';
+  }
+}
+
+function closeModal() { document.getElementById('detail-modal').classList.remove('open'); }
+document.getElementById('modal-close').addEventListener('click', closeModal);
+document.getElementById('modal-cancel').addEventListener('click', closeModal);
+document.getElementById('detail-modal').addEventListener('click', function(e) { if(e.target===this) closeModal(); });
+
+document.getElementById('modal-save').addEventListener('click', async function() {
+  const {type, id} = modalCtx;
+  if (!type||!id) { toast('Aucun enregistrement sélectionné.', false); return; }
+  const status = document.getElementById('modal-status').value;
+  const notes  = document.getElementById('modal-notes').value;
+  const btn    = document.getElementById('modal-save');
+  btn.disabled=true; btn.textContent='Enregistrement…';
+  try {
+    const res = await apiFetch('/admin/'+type+'/'+id, {method:'PATCH', body:JSON.stringify({status, notes})});
+    if (res.error) throw new Error(res.error);
+    toast('✓ Mis à jour avec succès.');
+    closeModal(); loadSection(type); loadStats(); loadNotifDrop();
+  } catch(err) {
+    toast('Erreur : '+(err.message||'impossible de sauvegarder.'), false);
+  } finally { btn.disabled=false; btn.textContent='Enregistrer'; }
+});
+
+/* ── HELPERS ── */
+function esc(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function fmtDate(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'})+' '+
+         d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+}
+function labelStatus(s) {
+  return ({nouveau:'Nouveau',en_cours:'En cours',traite:'Traité',archive:'Archivé'})[s]||s;
+}
+
+/* ══════════════════════════════════════════════════════════
+   NOTIFICATIONS
+══════════════════════════════════════════════════════════ */
+const TYPE_ICONS = {new_contact:'✉️',new_visa:'🛂',new_omra:'🕌',status_change:'🔄',note_added:'📝'};
+let notifPage=1, notifFilter='', notifTotal=0;
+const NOTIF_LIMIT=20;
+
+/* Bell toggle */
+document.getElementById('notif-bell').addEventListener('click', function(e) {
+  e.stopPropagation();
+  const dd = document.getElementById('notif-dropdown');
+  dd.classList.toggle('open');
+  if (dd.classList.contains('open')) loadNotifDrop();
+});
+document.addEventListener('click', function(e) {
+  if (!document.getElementById('notif-bell-wrap').contains(e.target))
+    document.getElementById('notif-dropdown').classList.remove('open');
+});
+
+async function loadNotifDrop() {
+  const data = await apiFetch('/admin/notifications?limit=10&page=1');
+  renderNotifDrop(data.data||[]);
+  updateBell(data.unread_count||0);
+}
+
+/* ── renderNotifDrop : data-id et data-category cohérents avec le handler ── */
+function renderNotifDrop(items) {
+  const el = document.getElementById('notif-list-drop');
+  if (!items.length) { el.innerHTML='<div class="notif-empty"><div>🔔</div>Aucune notification</div>'; return; }
+  el.innerHTML = items.map(n =>
+    '<div class="notif-item '+(n.is_read?'':'unread')+'" data-id="'+esc(String(n.id))+'" data-category="'+esc(String(n.category))+'">'+
+      '<div class="notif-icon">'+(TYPE_ICONS[n.type]||'🔔')+'</div>'+
+      '<div class="notif-content">'+
+        '<div class="notif-title">'+esc(n.title)+'</div>'+
+        '<div class="notif-body">'+esc(n.body)+'</div>'+
+        '<div class="notif-time">'+timeAgo(n.created_at)+'</div>'+
+      '</div>'+
+      '<button class="notif-del" data-del-id="'+esc(String(n.id))+'" title="Supprimer">×</button>'+
+    '</div>'
+  ).join('');
+}
+
+/* ── Délégation unique sur le dropdown ── */
+document.getElementById('notif-list-drop').addEventListener('click', async function(e) {
+  // Bouton supprimer
+  const delBtn = e.target.closest('[data-del-id]');
+  if (delBtn) {
+    e.stopPropagation();
+    const id = delBtn.getAttribute('data-del-id');
+    await apiFetch('/admin/notifications/'+id, {method:'DELETE'});
+    loadNotifDrop();
+    if (document.getElementById('page-notifications').classList.contains('active')) loadNotifPage();
+    return;
+  }
+  // Clic sur la carte = marquer lu + naviguer
+  const card = e.target.closest('.notif-item');
+  if (!card) return;
+  const id       = card.getAttribute('data-id');
+  const category = card.getAttribute('data-category');
+  if (!id) return;
+  await apiFetch('/admin/notifications/'+id+'/read', {method:'PATCH'});
+  document.getElementById('notif-dropdown').classList.remove('open');
+  const map = {contact:'contacts', visa:'visas', omra:'omra'};
+  if (map[category]) switchPage(map[category]);
+  loadNotifDrop();
+});
+
+function updateBell(count) {
+  const dot  = document.getElementById('notif-dot');
+  const bell = document.getElementById('notif-bell');
+  const nav  = document.getElementById('badge-notif-nav');
+  dot.textContent = count>99?'99+':count;
+  dot.classList.toggle('visible', count>0);
+  bell.classList.toggle('has-unread', count>0);
+  nav.textContent = count;
+  nav.classList.toggle('zero', count===0);
+}
+
+document.getElementById('btn-read-all').addEventListener('click', async function() {
+  await apiFetch('/admin/notifications/read-all',{method:'PATCH'}); loadNotifDrop(); loadNotifPage();
+});
+document.getElementById('btn-clear-all').addEventListener('click', async function() {
+  if (!confirm('Supprimer toutes les notifications ?')) return;
+  await apiFetch('/admin/notifications',{method:'DELETE'}); loadNotifDrop(); loadNotifPage();
+});
+document.getElementById('pg-read-all').addEventListener('click', async function() {
+  await apiFetch('/admin/notifications/read-all',{method:'PATCH'}); loadNotifDrop(); loadNotifPage(); toast('Toutes marquées comme lues.');
+});
+document.getElementById('pg-clear-all').addEventListener('click', async function() {
+  if (!confirm('Supprimer toutes les notifications ?')) return;
+  await apiFetch('/admin/notifications',{method:'DELETE'}); loadNotifDrop(); loadNotifPage(); toast('Notifications supprimées.');
+});
+
+async function loadNotifPage() {
+  const qs = 'page='+notifPage+'&limit='+NOTIF_LIMIT+(notifFilter==='unread'?'&unread_only=true':'');
+  const data = await apiFetch('/admin/notifications?'+qs);
+  notifTotal = data.total||0;
+  let items = data.data||[];
+  if (notifFilter&&notifFilter!=='unread') items = items.filter(n=>n.category===notifFilter);
+  renderNotifPage(items);
+  updateBell(data.unread_count||0);
+  const pages = Math.ceil(notifTotal/NOTIF_LIMIT);
+  document.getElementById('notif-pg-info').textContent = 'Page '+notifPage+' / '+(pages||1)+' — '+notifTotal+' total';
+  document.getElementById('notif-pg-prev').disabled = notifPage<=1;
+  document.getElementById('notif-pg-next').disabled = notifPage>=pages;
+}
+
+function renderNotifPage(items) {
+  const el = document.getElementById('notif-page-list');
+  if (!items.length) { el.innerHTML='<div class="notif-empty"><div>📭</div>Aucune notification trouvée.</div>'; return; }
+  el.innerHTML = items.map(n => {
+    const catLabel = ({contact:'Devis',visa:'Visa',omra:'Omra'})[n.category]||n.category;
+    return '<div class="notif-page-item '+(n.is_read?'':'unread')+'">'+
+      '<div class="notif-icon" style="width:40px;height:40px;font-size:1.3rem;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--white-dim);border:1px solid var(--gold-border);border-radius:8px;">'+(TYPE_ICONS[n.type]||'🔔')+'</div>'+
+      '<div style="flex:1;min-width:0;">'+
+        '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">'+
+          '<div style="font-size:.90rem;font-weight:500;color:var(--white);line-height:1.3;">'+esc(n.title)+'</div>'+
+          '<div style="font-size:.72rem;color:rgba(246,241,230,.30);white-space:nowrap;flex-shrink:0;">'+timeAgo(n.created_at)+'</div>'+
+        '</div>'+
+        '<div style="font-size:.82rem;color:var(--muted);margin-top:4px;line-height:1.5;">'+esc(n.body)+'</div>'+
+        '<div class="notif-meta">'+
+          '<span class="notif-cat-badge cat-'+n.category+'">'+catLabel+'</span>'+
+          (!n.is_read?'<span style="font-size:.68rem;color:var(--gold);font-weight:600;">● NON LU</span>':'')+
+          (n.email_sent?'<span style="font-size:.68rem;color:#3DBA7A;">✓ Email envoyé</span>':'')+
+        '</div>'+
+      '</div>'+
+      '<div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;">'+
+        (!n.is_read?'<button class="action-btn primary" data-notif-read="'+String(n.id)+'">✓ Lu</button>':'')+
+        '<button class="action-btn danger" data-notif-delete="'+String(n.id)+'">Suppr.</button>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+/* Délégation page notifications */
+document.getElementById('notif-page-list').addEventListener('click', async function(e) {
+  const readBtn = e.target.closest('[data-notif-read]');
+  if (readBtn) {
+    e.stopPropagation();
+    await apiFetch('/admin/notifications/'+readBtn.getAttribute('data-notif-read')+'/read', {method:'PATCH'});
+    loadNotifDrop(); loadNotifPage(); return;
+  }
+  const delBtn = e.target.closest('[data-notif-delete]');
+  if (delBtn) {
+    e.stopPropagation();
+    await apiFetch('/admin/notifications/'+delBtn.getAttribute('data-notif-delete'), {method:'DELETE'});
+    loadNotifDrop(); loadNotifPage();
+  }
+});
+
+document.getElementById('notif-page-filters').addEventListener('click', function(e) {
+  const btn = e.target.closest('.filter-btn');
+  if (!btn) return;
+  document.querySelectorAll('#notif-page-filters .filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  notifFilter = btn.dataset.filter; notifPage=1; loadNotifPage();
+});
+document.getElementById('notif-pg-prev').addEventListener('click', ()=>{ notifPage--; loadNotifPage(); });
+document.getElementById('notif-pg-next').addEventListener('click', ()=>{ notifPage++; loadNotifPage(); });
+
+/* ── SSE ── */
+function connectSSE() {
+  if (!TOKEN) return;
+  const es = new EventSource(API+'/admin/notifications/stream?token='+TOKEN);
+  es.addEventListener('new_notification', function(e) {
+    const notif = JSON.parse(e.data);
+    const bell = document.getElementById('notif-bell');
+    bell.style.transform='scale(1.25)';
+    setTimeout(()=>{ bell.style.transform=''; }, 300);
+    loadNotifDrop();
+    if (document.getElementById('page-notifications').classList.contains('active')) loadNotifPage();
+    toast((TYPE_ICONS[notif.type]||'🔔')+' '+notif.title);
+  });
+  es.addEventListener('unread_count', function(e) { updateBell(JSON.parse(e.data).count); });
+  es.onerror = function() { es.close(); setTimeout(connectSSE, 5000); };
+}
+
+function timeAgo(iso) {
+  const diff = Date.now()-new Date(iso).getTime();
+  const m = Math.floor(diff/60000);
+  if (m<1)  return 'À l\'instant';
+  if (m<60) return 'Il y a '+m+' min';
+  const h = Math.floor(m/60);
+  if (h<24) return 'Il y a '+h+'h';
+  return 'Il y a '+Math.floor(h/24)+'j';
+}
+
+/* ── INIT ── */
+if (TOKEN) { showApp(); }
+else { document.getElementById('login-screen').style.display='flex'; }
+</script>
+</body>
+</html>

@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Aurelia Voyage — Voyagez. Découvrez. Vivez l'Exception.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --navy: #06102A; --navy-mid: #0D1E42; --navy-light: #132552;
+      --gold: #D4AF55; --gold-light: #E8CC7A;
+      --gold-dim: rgba(212,175,85,.18); --gold-border: rgba(212,175,85,.30);
+      --teal: #1AA3C9; --teal-dim: rgba(26,163,201,.15);
+      --white: #F6F1E6; --white-dim: rgba(246,241,230,.07);
+      --white-soft: rgba(246,241,230,.55); --text-muted: rgba(246,241,230,.55);
+      --container: 1180px; --radius: 4px; --radius-lg: 10px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Jost', sans-serif; background: var(--navy); color: var(--white); overflow-x: hidden; }
+    a { color: inherit; text-decoration: none; }
+    body::before {
+      content: ""; position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      background-size: 256px; opacity: .45; pointer-events: none; z-index: 0;
+    }
+    .site-header { position: sticky; top: 0; z-index: 100; background: rgba(6,16,42,.85); backdrop-filter: blur(18px); border-bottom: 1px solid var(--gold-border); }
+    .nav-wrap { width: min(var(--container), 94vw); margin: 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 16px 0; gap: 20px; }
+    .logo { display: flex; align-items: center; gap: 13px; font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: 1.25rem; letter-spacing: .04em; color: var(--white); }
+    .logo img { width: 42px; height: 42px; border-radius: 8px; border: 1px solid var(--gold-border); }
+    .logo-sub { display: block; font-family: 'Jost', sans-serif; font-size: .68rem; font-weight: 500; letter-spacing: .22em; color: var(--gold); text-transform: uppercase; margin-top: 1px; }
+    nav { display: flex; gap: 28px; align-items: center; }
+    nav a { font-size: .82rem; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: var(--white-soft); transition: color .2s; }
+    nav a:hover { color: var(--gold); }
+    .btn { display: inline-flex; align-items: center; gap: 8px; font-family: 'Jost', sans-serif; font-size: .78rem; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; padding: 11px 24px; border-radius: var(--radius); cursor: pointer; transition: all .2s ease; border: none; }
+    .btn-gold { background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%); color: var(--navy); }
+    .btn-gold:hover { opacity: .88; transform: translateY(-1px); }
+    .btn-outline { background: transparent; border: 1px solid var(--gold-border); color: var(--gold-light); }
+    .btn-outline:hover { border-color: var(--gold); background: var(--gold-dim); }
+    @media (max-width: 760px) { nav { display: none; } }
+    .hero { position: relative; min-height: 92vh; display: flex; align-items: center; overflow: hidden; }
+    .hero-bg { position: absolute; inset: 0; background: radial-gradient(ellipse 70% 60% at 70% 40%, rgba(26,163,201,.08) 0%, transparent 65%), radial-gradient(ellipse 60% 80% at 20% 60%, rgba(212,175,85,.07) 0%, transparent 60%), linear-gradient(180deg, var(--navy) 0%, #070F28 100%); }
+    .hero-grid-overlay { position: absolute; inset: 0; background-image: linear-gradient(rgba(212,175,85,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(212,175,85,.05) 1px, transparent 1px); background-size: 60px 60px; mask-image: radial-gradient(ellipse 80% 80% at 60% 40%, black 0%, transparent 70%); }
+    .hero-inner { position: relative; z-index: 1; width: min(var(--container), 94vw); margin: 0 auto; display: grid; grid-template-columns: 1.15fr .85fr; gap: 60px; align-items: center; padding: 80px 0; }
+    @media (max-width: 960px) { .hero-inner { grid-template-columns: 1fr; gap: 40px; } }
+    .hero-eyebrow { display: inline-flex; align-items: center; gap: 10px; font-size: .72rem; font-weight: 600; letter-spacing: .25em; text-transform: uppercase; color: var(--gold); margin-bottom: 22px; }
+    .hero-eyebrow::before, .hero-eyebrow::after { content: ""; display: inline-block; width: 32px; height: 1px; background: var(--gold-border); }
+    .hero h1 { font-family: 'Cormorant Garamond', serif; font-size: clamp(2.8rem, 5vw, 4.2rem); font-weight: 300; line-height: 1.10; color: var(--white); margin-bottom: 20px; }
+    .hero h1 em { font-style: italic; color: var(--gold-light); }
+    .hero p { font-size: 1rem; font-weight: 300; line-height: 1.75; color: var(--text-muted); max-width: 50ch; margin-bottom: 36px; }
+    .hero-actions { display: flex; gap: 14px; flex-wrap: wrap; }
+    .hero-card { background: rgba(13,30,66,.70); border: 1px solid var(--gold-border); border-radius: var(--radius-lg); padding: 28px; backdrop-filter: blur(10px); position: relative; overflow: hidden; }
+    .hero-card::before { content: ""; position: absolute; top: -60px; right: -60px; width: 220px; height: 220px; background: radial-gradient(circle, rgba(212,175,85,.12) 0%, transparent 60%); }
+    .card-label { font-size: .70rem; letter-spacing: .20em; text-transform: uppercase; color: var(--gold); margin-bottom: 18px; }
+    .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; position: relative; }
+    .stat { background: var(--white-dim); border: 1px solid var(--gold-border); border-radius: var(--radius); padding: 16px 14px; }
+    .stat-num { font-family: 'Cormorant Garamond', serif; font-size: 1.55rem; font-weight: 600; color: var(--gold-light); line-height: 1; }
+    .stat-lbl { font-size: .72rem; letter-spacing: .10em; text-transform: uppercase; color: var(--text-muted); margin-top: 5px; }
+    .hero-card-footer { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--gold-border); font-size: .80rem; color: var(--text-muted); display: flex; align-items: center; gap: 8px; }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: #3DBA7A; flex-shrink: 0; }
+    section { position: relative; z-index: 1; }
+    .container { width: min(var(--container), 94vw); margin: 0 auto; }
+    .section-header { text-align: center; margin-bottom: 56px; }
+    .section-tag { display: inline-block; font-size: .70rem; font-weight: 600; letter-spacing: .25em; text-transform: uppercase; color: var(--gold); margin-bottom: 14px; }
+    .section-header h2 { font-family: 'Cormorant Garamond', serif; font-size: clamp(2rem, 3.5vw, 2.9rem); font-weight: 300; color: var(--white); line-height: 1.15; }
+    .section-header h2 em { font-style: italic; color: var(--gold-light); }
+    .section-header p { margin-top: 14px; font-size: .95rem; font-weight: 300; color: var(--text-muted); max-width: 56ch; margin-left: auto; margin-right: auto; line-height: 1.70; }
+    .gold-rule { width: 48px; height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent); margin: 16px auto 0; }
+    .services { padding: 100px 0; }
+    .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; }
+    .service-card { background: rgba(13,30,66,.55); border: 1px solid var(--gold-border); border-radius: var(--radius-lg); padding: 32px 28px; transition: border-color .25s, transform .25s; position: relative; overflow: hidden; }
+    .service-card::after { content: ""; position: absolute; bottom: -80px; right: -80px; width: 160px; height: 160px; border-radius: 50%; background: radial-gradient(circle, var(--gold-dim) 0%, transparent 70%); transition: opacity .3s; opacity: 0; }
+    .service-card:hover { border-color: rgba(212,175,85,.55); transform: translateY(-3px); }
+    .service-card:hover::after { opacity: 1; }
+    .service-icon { width: 46px; height: 46px; border-radius: 10px; background: var(--gold-dim); border: 1px solid var(--gold-border); display: flex; align-items: center; justify-content: center; font-size: 1.35rem; margin-bottom: 20px; }
+    .service-card h3 { font-family: 'Cormorant Garamond', serif; font-size: 1.35rem; font-weight: 600; color: var(--white); margin-bottom: 10px; }
+    .service-card p { font-size: .88rem; font-weight: 300; line-height: 1.70; color: var(--text-muted); margin-bottom: 18px; }
+    .service-tags { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 24px; }
+    .tag { font-size: .70rem; letter-spacing: .08em; padding: 5px 11px; border-radius: 2px; border: 1px solid rgba(212,175,85,.22); color: var(--gold); background: var(--gold-dim); }
+    .divider { width: min(var(--container), 94vw); margin: 0 auto; height: 1px; background: linear-gradient(90deg, transparent, var(--gold-border), transparent); }
+    .process { padding: 100px 0; }
+    .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; position: relative; }
+    @media (max-width: 860px) { .steps { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 520px) { .steps { grid-template-columns: 1fr; } }
+    .steps::before { content: ""; position: absolute; top: 28px; left: calc(12.5% + 16px); right: calc(12.5% + 16px); height: 1px; background: linear-gradient(90deg, var(--gold-border), var(--gold-border)); }
+    .step { text-align: center; padding: 0 20px; position: relative; }
+    .step-num { width: 56px; height: 56px; border-radius: 50%; border: 1px solid var(--gold-border); background: var(--navy-mid); display: flex; align-items: center; justify-content: center; font-family: 'Cormorant Garamond', serif; font-size: 1.30rem; font-weight: 600; color: var(--gold); margin: 0 auto 22px; position: relative; z-index: 1; }
+    .step h3 { font-family: 'Cormorant Garamond', serif; font-size: 1.15rem; font-weight: 600; color: var(--white); margin-bottom: 8px; }
+    .step p { font-size: .83rem; font-weight: 300; line-height: 1.65; color: var(--text-muted); }
+    .visa { padding: 100px 0; }
+    .visa-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start; }
+    @media (max-width: 860px) { .visa-inner { grid-template-columns: 1fr; } }
+    .visa-text h2 { font-family: 'Cormorant Garamond', serif; font-size: clamp(2rem, 3vw, 2.6rem); font-weight: 300; line-height: 1.15; margin-bottom: 14px; }
+    .visa-text h2 em { font-style: italic; color: var(--gold-light); }
+    .visa-text p { font-size: .93rem; font-weight: 300; color: var(--text-muted); line-height: 1.70; margin-bottom: 28px; }
+    .visa-features { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+    .visa-features li { display: flex; align-items: flex-start; gap: 12px; font-size: .88rem; font-weight: 300; color: var(--text-muted); }
+    .check { flex-shrink: 0; width: 20px; height: 20px; border-radius: 50%; background: var(--gold-dim); border: 1px solid var(--gold-border); display: flex; align-items: center; justify-content: center; color: var(--gold); font-size: .65rem; margin-top: 1px; }
+    .form-card { background: rgba(13,30,66,.60); border: 1px solid var(--gold-border); border-radius: var(--radius-lg); padding: 32px; backdrop-filter: blur(12px); }
+    .form-card label { display: block; font-size: .72rem; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; margin-top: 18px; }
+    .form-card label:first-of-type { margin-top: 0; }
+    .form-card input, .form-card select { width: 100%; background: var(--white-dim); border: 1px solid var(--gold-border); border-radius: var(--radius); padding: 11px 14px; color: var(--white); font-family: 'Jost', sans-serif; font-size: .88rem; outline: none; transition: border-color .2s; appearance: none; }
+    .form-card input::placeholder { color: rgba(246,241,230,.30); }
+    .form-card input:focus, .form-card select:focus { border-color: var(--gold); }
+    .form-card select option { background: var(--navy-mid); color: var(--white); }
+    .form-card small { display: block; margin-top: 12px; font-size: .74rem; color: var(--text-muted); text-align: center; }
+    .omra { padding: 100px 0; }
+    .omra-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+    @media (max-width: 640px) { .omra-grid { grid-template-columns: 1fr; } }
+    .omra-card { background: rgba(13,30,66,.55); border: 1px solid var(--gold-border); border-radius: var(--radius-lg); padding: 34px 30px; position: relative; overflow: hidden; transition: border-color .25s, transform .25s; }
+    .omra-card:hover { border-color: rgba(212,175,85,.55); transform: translateY(-2px); }
+    .omra-card::before { content: ""; position: absolute; top: -1px; left: 30px; right: 30px; height: 2px; background: linear-gradient(90deg, transparent, var(--gold), transparent); }
+    .omra-badge { display: inline-block; font-size: .68rem; letter-spacing: .16em; text-transform: uppercase; padding: 5px 12px; border-radius: 2px; background: var(--gold-dim); border: 1px solid var(--gold-border); color: var(--gold); margin-bottom: 16px; }
+    .omra-card h3 { font-family: 'Cormorant Garamond', serif; font-size: 1.55rem; font-weight: 600; color: var(--white); margin-bottom: 8px; }
+    .omra-card p { font-size: .88rem; font-weight: 300; color: var(--text-muted); line-height: 1.65; margin-bottom: 20px; }
+    .omra-includes { list-style: none; display: flex; flex-direction: column; gap: 8px; margin-bottom: 26px; }
+    .omra-includes li { display: flex; align-items: center; gap: 10px; font-size: .84rem; font-weight: 300; color: var(--text-muted); }
+    .omra-includes li::before { content: "✦"; font-size: .60rem; color: var(--gold); flex-shrink: 0; }
+    .faq { padding: 100px 0; }
+    .faq-list { display: flex; flex-direction: column; gap: 12px; max-width: 760px; margin: 0 auto; }
+    details { background: rgba(13,30,66,.55); border: 1px solid var(--gold-border); border-radius: var(--radius-lg); overflow: hidden; transition: border-color .2s; }
+    details[open] { border-color: rgba(212,175,85,.50); }
+    summary { padding: 20px 24px; font-family: 'Cormorant Garamond', serif; font-size: 1.10rem; font-weight: 600; color: var(--white); cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    summary::-webkit-details-marker { display: none; }
+    summary::after { content: "+"; font-family: 'Jost', sans-serif; font-size: 1.30rem; font-weight: 300; color: var(--gold); flex-shrink: 0; transition: transform .2s; }
+    details[open] summary::after { transform: rotate(45deg); }
+    details p { padding: 0 24px 20px; font-size: .90rem; font-weight: 300; line-height: 1.70; color: var(--text-muted); }
+    .contact { padding: 100px 0 120px; }
+    .contact-inner { max-width: 620px; margin: 0 auto; }
+    .contact-inner .form-card { margin-top: 40px; }
+    .site-footer { border-top: 1px solid var(--gold-border); padding: 42px 0; background: rgba(6,16,42,.95); }
+    .footer-inner { width: min(var(--container), 94vw); margin: 0 auto; display: flex; flex-wrap: wrap; gap: 18px; align-items: center; justify-content: space-between; }
+    .footer-logo { font-family: 'Cormorant Garamond', serif; font-size: 1.10rem; font-weight: 600; color: var(--white); display: flex; align-items: center; gap: 10px; }
+    .footer-logo img { width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--gold-border); }
+    .footer-copy { font-size: .78rem; color: var(--text-muted); }
+    .footer-links { display: flex; gap: 22px; flex-wrap: wrap; }
+    .footer-links a { font-size: .75rem; font-weight: 500; letter-spacing: .10em; text-transform: uppercase; color: var(--text-muted); transition: color .2s; }
+    .footer-links a:hover { color: var(--gold); }
+    .destinations { padding: 100px 0; }
+    .dest-grid { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: auto auto; gap: 16px; }
+    @media (max-width: 860px) { .dest-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 520px) { .dest-grid { grid-template-columns: 1fr; } }
+    .dest-card { position: relative; border-radius: var(--radius-lg); overflow: hidden; cursor: pointer; border: 1px solid var(--gold-border); aspect-ratio: 4/3; background: var(--navy-mid); }
+    .dest-card.large { grid-column: span 2; aspect-ratio: 16/9; }
+    .dest-card img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .55s ease; filter: brightness(.82) saturate(.90); }
+    .dest-card:hover img { transform: scale(1.05); filter: brightness(.72) saturate(1.0); }
+    .dest-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(6,16,42,.85) 0%, rgba(6,16,42,.10) 55%, transparent 100%); }
+    .dest-info { position: absolute; bottom: 0; left: 0; right: 0; padding: 22px 22px 20px; }
+    .dest-country { font-size: .68rem; letter-spacing: .20em; text-transform: uppercase; color: var(--gold); font-weight: 600; margin-bottom: 4px; }
+    .dest-city { font-family: 'Cormorant Garamond', serif; font-size: 1.40rem; font-weight: 600; color: var(--white); line-height: 1.1; }
+    .dest-card.large .dest-city { font-size: 1.85rem; }
+    .dest-tag-row { display: flex; gap: 7px; margin-top: 8px; flex-wrap: wrap; }
+    .dest-pill { font-size: .66rem; letter-spacing: .08em; padding: 4px 10px; border-radius: 2px; background: rgba(212,175,85,.18); border: 1px solid rgba(212,175,85,.28); color: var(--gold-light); }
+    .dest-arrow { position: absolute; top: 16px; right: 16px; width: 36px; height: 36px; border-radius: 50%; background: rgba(212,175,85,.15); border: 1px solid var(--gold-border); display: flex; align-items: center; justify-content: center; color: var(--gold); font-size: 1rem; opacity: 0; transform: translateY(6px); transition: opacity .25s, transform .25s; }
+    .dest-card:hover .dest-arrow { opacity: 1; transform: translateY(0); }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+    .hero-left > * { animation: fadeUp .75s ease both; }
+    .hero-left > *:nth-child(1) { animation-delay: .05s; }
+    .hero-left > *:nth-child(2) { animation-delay: .15s; }
+    .hero-left > *:nth-child(3) { animation-delay: .25s; }
+    .hero-left > *:nth-child(4) { animation-delay: .35s; }
+    .hero-card { animation: fadeUp .75s .45s ease both; }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="nav-wrap">
+    <a class="logo" href="#top">
+      <img src="img/aurelia.jpg" alt="Aurelia Voyage" onerror="this.style.display='none'"/>
+      <span>Aurelia Voyage<small class="logo-sub">Visa · Omra · Voyages</small></span>
+    </a>
+    <nav>
+      <a href="#services">Services</a>
+      <a href="#destinations">Destinations</a>
+      <a href="#visa">Visa</a>
+      <a href="#omra">Omra</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <a class="btn btn-gold" href="#contact">Demander un devis</a>
+  </div>
+</header>
+
+<main id="top">
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid-overlay"></div>
+  <div class="hero-inner">
+    <div class="hero-left">
+      <div class="hero-eyebrow">Voyagez. Découvrez. Vivez l'Exception.</div>
+      <h1>Des voyages <em>sur mesure</em>,<br>un accompagnement sans faille.</h1>
+      <p>Organisation de voyages, assistance visa, et offres Omra & Hajj. Une équipe qui gère chaque détail pour que vous voyagiez l'esprit tranquille.</p>
+      <div class="hero-actions">
+        <a class="btn btn-gold" href="#contact">Demander un devis</a>
+        <a class="btn btn-outline" href="#visa">Commencer une demande visa</a>
+      </div>
+    </div>
+    <aside class="hero-card">
+      <div class="card-label">Pourquoi Aurelia Voyage</div>
+      <div class="stat-grid">
+        <div class="stat"><div class="stat-num">24/7</div><div class="stat-lbl">Support</div></div>
+        <div class="stat"><div class="stat-num">100%</div><div class="stat-lbl">Sur mesure</div></div>
+        <div class="stat"><div class="stat-num">Visa</div><div class="stat-lbl">Accompagnement</div></div>
+        <div class="stat"><div class="stat-num">Omra</div><div class="stat-lbl">Organisation</div></div>
+      </div>
+      <div class="hero-card-footer">
+        <span class="dot"></span>
+        Équipe disponible — Réponse sous 24h ouvrées
+      </div>
+    </aside>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section class="services" id="services">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag">Ce que nous faisons</div>
+      <h2>Nos <em>services</em></h2>
+      <div class="gold-rule"></div>
+      <p>Une gamme complète pour chaque étape de votre voyage, de la planification à l'arrivée.</p>
+    </div>
+    <div class="services-grid">
+      <article class="service-card">
+        <div class="service-icon">✈</div>
+        <h3>Organisation de voyage</h3>
+        <p>Vols, hôtels, transferts, itinéraires 100 % adaptés à vos dates et votre budget.</p>
+        <div class="service-tags"><span class="tag">Conseil voyage</span><span class="tag">Réservation complète</span><span class="tag">Support avant départ</span></div>
+        <a href="#contact" class="btn btn-outline">Demander un devis</a>
+      </article>
+      <article class="service-card">
+        <div class="service-icon">📋</div>
+        <h3>Demande de visa</h3>
+        <p>Accompagnement complet : constitution du dossier, vérification des documents, suivi.</p>
+        <div class="service-tags"><span class="tag">Pièces requises</span><span class="tag">Vérification</span><span class="tag">Suivi dossier</span></div>
+        <a href="#visa" class="btn btn-outline">Commencer</a>
+      </article>
+      <article class="service-card">
+        <div class="service-icon">🕌</div>
+        <h3>Omra & Hajj</h3>
+        <p>Organisation spirituelle complète : vols, hébergement, encadrement et assistance sur place.</p>
+        <div class="service-tags"><span class="tag">Parcours simplifié</span><span class="tag">Guide inclus</span><span class="tag">Support 24/7</span></div>
+        <a href="#omra" class="btn btn-outline">Voir les offres</a>
+      </article>
+      <article class="service-card">
+        <div class="service-icon">👥</div>
+        <h3>Voyages en groupe</h3>
+        <p>Pour associations, familles, écoles ou entreprises : logistique gérée de A à Z.</p>
+        <div class="service-tags"><span class="tag">Programme sur mesure</span><span class="tag">Logistique</span><span class="tag">Budget maîtrisé</span></div>
+        <a href="#contact" class="btn btn-outline">Planifier</a>
+      </article>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- DESTINATIONS -->
+<section class="destinations" id="destinations">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag">Où nous vous emmenons</div>
+      <h2>Destinations <em>populaires</em></h2>
+      <div class="gold-rule"></div>
+      <p>Des vols et séjours organisés vers les plus belles destinations au monde.</p>
+    </div>
+    <div class="dest-grid">
+      <article class="dest-card large" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})">
+        <img src="https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1200&q=80&auto=format&fit=crop" alt="Paris, France" loading="lazy"/>
+        <div class="dest-overlay"></div><div class="dest-arrow">↗</div>
+        <div class="dest-info"><div class="dest-country">France</div><div class="dest-city">Paris</div><div class="dest-tag-row"><span class="dest-pill">Visa Schengen</span><span class="dest-pill">Vol direct</span><span class="dest-pill">Séjour sur mesure</span></div></div>
+      </article>
+      <article class="dest-card" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})">
+        <img src="https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?w=800&q=80&auto=format&fit=crop" alt="Istanbul, Turquie" loading="lazy"/>
+        <div class="dest-overlay"></div><div class="dest-arrow">↗</div>
+        <div class="dest-info"><div class="dest-country">Turquie</div><div class="dest-city">Istanbul</div><div class="dest-tag-row"><span class="dest-pill">Sans visa</span><span class="dest-pill">Culture & Histoire</span></div></div>
+      </article>
+      <article class="dest-card" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})">
+        <img src="https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=800&q=80&auto=format&fit=crop" alt="Barcelone, Espagne" loading="lazy"/>
+        <div class="dest-overlay"></div><div class="dest-arrow">↗</div>
+        <div class="dest-info"><div class="dest-country">Espagne</div><div class="dest-city">Barcelone</div><div class="dest-tag-row"><span class="dest-pill">Visa Schengen</span><span class="dest-pill">Architecture</span></div></div>
+      </article>
+      <article class="dest-card large" onclick="document.getElementById('omra').scrollIntoView({behavior:'smooth'})">
+        <img src="https://images.unsplash.com/photo-1591604466107-ec97de577aff?w=1200&q=80&auto=format&fit=crop" alt="La Mecque, Arabie Saoudite" loading="lazy"/>
+        <div class="dest-overlay"></div><div class="dest-arrow">↗</div>
+        <div class="dest-info"><div class="dest-country">Arabie Saoudite</div><div class="dest-city">La Mecque</div><div class="dest-tag-row"><span class="dest-pill">Omra & Hajj</span><span class="dest-pill">Accompagnement complet</span><span class="dest-pill">Guide inclus</span></div></div>
+      </article>
+      <article class="dest-card" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})">
+        <img src="https://images.unsplash.com/photo-1471922694854-ff1b63b20054?w=800&q=80&auto=format&fit=crop" alt="Canada" loading="lazy"/>
+        <div class="dest-overlay"></div><div class="dest-arrow">↗</div>
+        <div class="dest-info"><div class="dest-country">Canada</div><div class="dest-city">Montréal & Toronto</div><div class="dest-tag-row"><span class="dest-pill">Visa Canada</span><span class="dest-pill">Voyage en groupe</span></div></div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- PROCESS -->
+<section class="process" id="process">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag">Notre méthode</div>
+      <h2>Comment on <em>s'occupe</em> de vous ?</h2>
+      <div class="gold-rule"></div>
+    </div>
+    <div class="steps">
+      <div class="step"><div class="step-num">01</div><h3>Analyse de votre demande</h3><p>Dates, destination, budget et contraintes (visa, famille, bagages).</p></div>
+      <div class="step"><div class="step-num">02</div><h3>Préparation de l'offre</h3><p>Itinéraire, hébergement, options et documents nécessaires.</p></div>
+      <div class="step"><div class="step-num">03</div><h3>Gestion des réservations</h3><p>Vols, hôtels, transferts et suivi de chaque dossier.</p></div>
+      <div class="step"><div class="step-num">04</div><h3>Accompagnement continu</h3><p>Rappels, support avant départ et assistance si besoin.</p></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- VISA — formulaire connecté à /api/visa -->
+<section class="visa" id="visa">
+  <div class="container">
+    <div class="visa-inner">
+      <div class="visa-text">
+        <div class="section-tag">Visa</div>
+        <h2>Accompagnement <em>complet</em> pour votre visa</h2>
+        <p>Indiquez votre nationalité et votre destination. Nous vous guidons pas à pas pour constituer un dossier solide et sans erreur.</p>
+        <ul class="visa-features">
+          <li><span class="check">✓</span>Liste précise des documents selon votre profil</li>
+          <li><span class="check">✓</span>Vérification et correction du dossier</li>
+          <li><span class="check">✓</span>Suivi de la demande jusqu'à la décision</li>
+          <li><span class="check">✓</span>Réponse sous 24h ouvrées</li>
+        </ul>
+      </div>
+      <!-- ↓ PAS de onsubmit ici — api.js prend le relais -->
+      <form class="form-card" id="form-visa">
+        <label>Destination</label>
+        <input type="text" placeholder="Ex : France, Espagne, Canada…" required/>
+        <label>Type de visa</label>
+        <select required>
+          <option value="" disabled selected>Choisir…</option>
+          <option>Touristique</option>
+          <option>Étudiant</option>
+          <option>Professionnel</option>
+          <option>Regroupement familial</option>
+        </select>
+        <label>Email</label>
+        <input type="email" placeholder="Votre Email" required/>
+        <label>Nationalité</label>
+        <input type="text" placeholder="Ex : Marocaine, Algérienne…" required/>
+        <br/>
+        <button type="submit" class="btn btn-gold" style="width:100%;justify-content:center;margin-top:18px;">
+          Demander la liste des documents
+        </button>
+        <small>Réponse sous 24h ouvrées.</small>
+      </form>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- OMRA — boutons interceptés par api.js via modale -->
+<section class="omra" id="omra">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag">Spiritualité & Sérénité</div>
+      <h2>Offres <em>Omra</em></h2>
+      <div class="gold-rule"></div>
+      <p>Des séjours conçus pour vous permettre de vous concentrer sur l'essentiel.</p>
+    </div>
+    <div class="omra-grid">
+      <article class="omra-card">
+        <span class="omra-badge">7 jours</span>
+        <h3>Omra Essentielle</h3>
+        <p>Formule complète : vol, hébergement et assistance sur place pour un séjour serein.</p>
+        <ul class="omra-includes">
+          <li>Vol aller-retour inclus</li><li>Hébergement à proximité du Haram</li>
+          <li>Encadrement et guide</li><li>Support 24/7 sur place</li><li>Programme spirituel inclus</li>
+        </ul>
+        <!-- ↓ api.js intercepte ce clic et ouvre la modale -->
+        <button class="btn btn-gold">Réserver</button>
+      </article>
+      <article class="omra-card">
+        <span class="omra-badge">10 jours</span>
+        <h3>Omra Prestige</h3>
+        <p>Plus de visites, meilleure flexibilité et options hôtelières supérieures.</p>
+        <ul class="omra-includes">
+          <li>Transfert aéroport inclus</li><li>Hébergement 4★ ou 5★</li>
+          <li>Accompagnateur dédié</li><li>Options repas personnalisables</li><li>Visite des sites historiques</li>
+        </ul>
+        <button class="btn btn-outline">Demander un prix</button>
+      </article>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- FAQ -->
+<section class="faq" id="faq">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag">Questions fréquentes</div>
+      <h2>Tout ce que vous <em>souhaitez savoir</em></h2>
+      <div class="gold-rule"></div>
+    </div>
+    <div class="faq-list">
+      <details><summary>Quels documents pour la demande de visa ?</summary><p>Nous vous envoyons la liste exacte selon votre destination, nationalité et type de visa. Ensuite, nous vérifions le dossier avec vous avant soumission.</p></details>
+      <details><summary>Êtes-vous présents pendant le voyage ?</summary><p>Oui : nous assurons un support avant le départ et une assistance sur place pour certaines prestations, notamment Omra & Hajj.</p></details>
+      <details><summary>Puis-je organiser un voyage entièrement sur mesure ?</summary><p>Absolument. Nous adaptons chaque itinéraire à vos dates, préférences et budget, en solo, en couple ou en famille.</p></details>
+      <details><summary>Comment se déroule la prise en charge pour un groupe ?</summary><p>Dès votre contact, nous désignons un responsable dédié à votre groupe. Un programme personnalisé est élaboré avec un suivi logistique complet de A à Z.</p></details>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- CONTACT — formulaire connecté à /api/contact -->
+<section class="contact" id="contact">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag">Parlons de votre projet</div>
+      <h2>Demander un <em>devis</em></h2>
+      <div class="gold-rule"></div>
+      <p>Dites-nous ce que vous cherchez. Nous vous répondons avec une proposition claire et sans engagement.</p>
+    </div>
+    <div class="contact-inner">
+      <!-- ↓ PAS de onsubmit — api.js prend le relais -->
+      <form class="form-card" id="form-contact">
+        <label>Nom complet</label>
+        <input type="text" placeholder="Votre nom" required/>
+        <label>Numéro de téléphone</label>
+        <input type="tel" placeholder="Ex : +212 6 00 00 00 00" required/>
+        <label>Service souhaité</label>
+        <select required>
+          <option value="" disabled selected>Choisir…</option>
+          <option>Organisation de voyage</option>
+          <option>Visa</option>
+          <option>Omra & Hajj</option>
+          <option>Voyage en groupe</option>
+        </select>
+        <label>Message</label>
+        <input type="text" placeholder="Dates, destination, budget…" required/>
+        <button type="submit" class="btn btn-gold" style="width:100%;justify-content:center;margin-top:22px;">
+          Envoyer ma demande
+        </button>
+        <small>Réponse garantie sous 24h ouvrées.</small>
+      </form>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div>
+      <div class="footer-logo">
+        <img src="img/aurelia.jpg" alt="Aurelia Voyage" onerror="this.style.display='none'"/>
+        Aurelia Voyage
+      </div>
+      <p class="footer-copy" style="margin-top:6px;">© <span id="year"></span> Aurelia Voyage. Tous droits réservés.</p>
+    </div>
+    <nav class="footer-links">
+      <a href="#services">Services</a>
+      <a href="#visa">Visa</a>
+      <a href="#omra">Omra</a>
+      <a href="#faq">FAQ</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </div>
+</footer>
+
+<script>
+  document.getElementById('year').textContent = new Date().getFullYear();
+</script>
+<!-- ↓ Connecteur API — doit être APRÈS le HTML -->
+<script src="api.js"></script>
+
+</body>
+</html>
